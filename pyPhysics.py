@@ -7,6 +7,7 @@ pygame.init()
 width = 1280
 height = 720
 vel_decrease = 0.5 #decrease over 1 second
+restitution = 0.8 #velocity decrease after hitting another object
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 running = True
@@ -193,7 +194,7 @@ class Shape:
                         found = True
                         break
 
-        if(intersects):
+        if intersects:
             return intersects
         else:
             return None
@@ -207,10 +208,12 @@ class Shape:
 
     def applyVelocity(self):
         self.moveByVector(self.velocity[0], self.velocity[1])
+        maxY = max(v[1] for v in self.vertices)
+        self.velocity[1] += self.weight
         self.velocity[0] *= math.pow(1 - vel_decrease, 1 / fps)
         self.velocity[1] *= math.pow(1 - vel_decrease, 1 / fps)
-        if(self.velocity[1] < self.weight):
-            self.velocity[1] = self.weight
+        if abs(self.velocity[0]) < 0.2: self.velocity[0] = 0
+        if abs(self.velocity[1]) < 0.2: self.velocity[1] = 0
 
     def setPosition(self, x, y):
         xMove = x - self.origin[0]
@@ -344,21 +347,20 @@ while running:
         if shape.getOutOfBounds(0)[2]:
             maxX = max(v[0] for v in shape.vertices)
             shape.moveByVector(width - maxX, 0)
-            shape.velocity[0] = -abs(shape.velocity[0])
+            shape.velocity[0] = -abs(shape.velocity[0]) * restitution
         if shape.getOutOfBounds(0)[4]:
             minX = min(v[0] for v in shape.vertices)
             shape.moveByVector(-minX, 0)
-            shape.velocity[0] = abs(shape.velocity[0])
+            shape.velocity[0] = abs(shape.velocity[0]) * restitution
 
         if shape.getOutOfBounds(0)[1]:
             minY = min(v[1] for v in shape.vertices)
             shape.moveByVector(0, -minY)
-            shape.velocity[1] = abs(shape.velocity[1])
+            shape.velocity[1] = abs(shape.velocity[1]) * restitution
         if shape.getOutOfBounds(0)[3]:
             maxY = max(v[1] for v in shape.vertices)
             shape.moveByVector(0, height - maxY)
-            shape.velocity[1] = -abs(shape.velocity[1])
-
+            shape.velocity[1] = -abs(shape.velocity[1]) * restitution
 
 
 
